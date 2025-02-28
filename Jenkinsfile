@@ -55,7 +55,6 @@ pipeline {
                 script {
                     sh 'kubectl get pods'
                     sh 'kubectl get svc'
-                }
             }
         }
     }
