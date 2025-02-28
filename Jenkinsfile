@@ -2,11 +2,14 @@ pipeline {
     agent any  // Defines where the pipeline will run
 
     stages {
-        stage('Checkout Code') {
-            steps {
-                git 'https://github.com/Lavanya45678/pipelinecraft-app.git'
-            }
-        }
+        checkout([$class: 'GitSCM', 
+    branches: [[name: '*/main']], 
+    userRemoteConfigs: [[
+        url: 'https://github.com/Lavanya45678/pipelinecraft-app.git',
+        credentialsId: 'github-pat'
+    ]]
+])
+
 
         stage('Build Frontend Image') {
             steps {
