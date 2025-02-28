@@ -1,10 +1,8 @@
- 
 const express = require('express');
 const router = express.Router();
+const apiController = require('../api/apiController');
 
-// Example route
-router.get('/', (req, res) => {
-    res.json({ message: 'Welcome to PIPELINECRAFT_APP API!' });
-});
+router.get('/', apiController.getData);
 
 module.exports = router;
+

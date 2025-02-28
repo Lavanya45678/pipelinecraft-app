@@ -1,17 +1,12 @@
-const express = require('express');
+const express = require("express");
 const app = express();
-const PORT = 4000;
 
-// Debug log to confirm the app starts
-console.log('App is starting...');
+const PORT = process.env.PORT || 5000;  // Change from 3000 to 5000
 
-// Route for '/'
-app.get('/', (req, res) => {
-    console.log('Received a GET request on /');
-    res.send('WELCOME TOVPIPELINECRAFT-APP API!');
+app.get("/", (req, res) => {
+    res.send("Backend is running!");
 });
 
-// Start the server
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
