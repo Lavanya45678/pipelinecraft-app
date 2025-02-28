@@ -8,12 +8,13 @@ pipeline {
         KUBE_CONFIG = "$HOME/.kube/config"
     }
 
-    stages {
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main', url: 'https://github.com/your-repo/pipelinecraft_app.git'
-            }
-        }
+    stage('Checkout Code') {
+    steps {
+        git branch: 'main', credentialsId: 'Lavanya45678-pat', url: 'https://github.com/Lavanya45678/pipelinecraft-app.git'
+    }
+}
+
+
 
         stage('Build Frontend Image') {
             steps {
