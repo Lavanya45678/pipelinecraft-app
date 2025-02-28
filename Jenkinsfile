@@ -1,20 +1,29 @@
 pipeline {
-    agent any  // Defines where the pipeline will run
+    agent any
+
+    environment {
+        DOCKER_REGISTRY = "your-dockerhub-username"
+        FRONTEND_IMAGE = "pipelinecraft-frontend"
+        BACKEND_IMAGE = "pipelinecraft-backend"
+    }
 
     stages {
-        checkout([$class: 'GitSCM', 
-    branches: [[name: '*/main']], 
-    userRemoteConfigs: [[
-        url: 'https://github.com/Lavanya45678/pipelinecraft-app.git',
-        credentialsId: 'github-pat'
-    ]]
-])
-
+        stage('Checkout Code') {
+            steps {
+                checkout([$class: 'GitSCM', 
+                    branches: [[name: '*/main']], 
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/Lavanya45678/pipelinecraft-app.git',
+                        credentialsId: 'github-pat'
+                    ]]
+                ])
+            }
+        }
 
         stage('Build Frontend Image') {
             steps {
                 script {
-                    sh 'docker build -t frontend-image ./frontend'
+                    sh 'docker build -t $DOCKER_REGISTRY/$FRONTEND_IMAGE:latest frontend/'
                 }
             }
         }
@@ -22,7 +31,7 @@ pipeline {
         stage('Build Backend Image') {
             steps {
                 script {
-                    sh 'docker build -t backend-image ./backend'
+                    sh 'docker build -t $DOCKER_REGISTRY/$BACKEND_IMAGE:latest backend/'
                 }
             }
         }
@@ -30,11 +39,10 @@ pipeline {
         stage('Push Docker Images') {
             steps {
                 script {
-                    sh 'docker tag frontend-image myrepo/frontend-image:latest'
-                    sh 'docker push myrepo/frontend-image:latest'
-
-                    sh 'docker tag backend-image myrepo/backend-image:latest'
-                    sh 'docker push myrepo/backend-image:latest'
+                    withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
+                        sh 'docker push $DOCKER_REGISTRY/$FRONTEND_IMAGE:latest'
+                        sh 'docker push $DOCKER_REGISTRY/$BACKEND_IMAGE:latest'
+                    }
                 }
             }
         }
@@ -42,8 +50,8 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    sh 'kubectl apply -f infrastructure/kubernetes/backend-deployment.yaml'
-                    sh 'kubectl apply -f infrastructure/kubernetes/frontend-deployment.yaml'
+                    sh 'kubectl apply -f k8s/deployment.yaml'
+                    sh 'kubectl apply -f k8s/service.yaml'
                 }
             }
         }
@@ -52,7 +60,7 @@ pipeline {
             steps {
                 script {
                     sh 'kubectl get pods'
-                    sh 'kubectl get svc'
+                    sh 'kubectl get services'
                 }
             }
         }
