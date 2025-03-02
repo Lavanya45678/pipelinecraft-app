@@ -1,0 +1,36 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  REGISTRY_IMAGE_BACKEND: registry.gitlab.com/your-namespace/pipelinecraft-backend
+  REGISTRY_IMAGE_FRONTEND: registry.gitlab.com/your-namespace/pipelinecraft-frontend
+  KUBE_NAMESPACE: default
+  KUBE_CONFIG: $KUBE_CONFIG
+
+build-backend:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker build -t $REGISTRY_IMAGE_BACKEND -f infrastructure/docker/backend.Dockerfile .
+    - docker push $REGISTRY_IMAGE_BACKEND
+
+build-frontend:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker build -t $REGISTRY_IMAGE_FRONTEND -f infrastructure/docker/frontend.Dockerfile .
+    - docker push $REGISTRY_IMAGE_FRONTEND
+
+deploy:
+  stage: deploy
+  image: bitnami/kubectl
+  script:
+    - echo "$KUBE_CONFIG" | base64 -d > kubeconfig
+    - export KUBECONFIG=kubeconfig
+    - kubectl apply -f infrastructure/kubernetes/backend-deployment.yaml
+    - kubectl apply -f infrastructure/kubernetes/frontend-deployment.yaml
