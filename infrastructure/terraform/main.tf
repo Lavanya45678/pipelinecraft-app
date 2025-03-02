@@ -1,10 +1,73 @@
 provider "kubernetes" {
-  config_path = "~/.kube/config"
+  config_path = var.kube_config_path
+}
+
+resource "kubernetes_namespace" "pipelinecraft" {
+  metadata {
+    name = "pipelinecraft"
+  }
+}
+
+resource "kubernetes_deployment" "backend" {
+  metadata {
+    name      = "backend-deployment"
+    namespace = kubernetes_namespace.pipelinecraft.metadata[0].name
+    labels = {
+      app = "backend"
+    }
+  }
+  spec {
+    replicas = 2
+    selector {
+      match_labels = {
+        app = "backend"
+      }
+    }
+    template {
+      metadata {
+        labels = {
+          app = "backend"
+        }
+      }
+      spec {
+        container {
+          image = "registry.gitlab.com/your-namespace/pipelinecraft-backend:latest"
+          name  = "backend"
+          port {
+            container_port = 5000
+          }
+          env {
+            name  = "PORT"
+            value = "5000"
+          }
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_service" "backend_service" {
+  metadata {
+    name      = "backend-service"
+    namespace = kubernetes_namespace.pipelinecraft.metadata[0].name
+  }
+  spec {
+    selector = {
+      app = "backend"
+    }
+    port {
+      protocol    = "TCP"
+      port        = 5000
+      target_port = 5000
+    }
+    type = "ClusterIP"
+  }
 }
 
 resource "kubernetes_deployment" "frontend" {
   metadata {
-    name = "frontend-deployment"
+    name      = "frontend-deployment"
+    namespace = kubernetes_namespace.pipelinecraft.metadata[0].name
     labels = {
       app = "frontend"
     }
@@ -24,7 +87,7 @@ resource "kubernetes_deployment" "frontend" {
       }
       spec {
         container {
-          image = "frontend-app:1.0"
+          image = "registry.gitlab.com/your-namespace/pipelinecraft-frontend:latest"
           name  = "frontend"
           port {
             container_port = 80
@@ -35,19 +98,20 @@ resource "kubernetes_deployment" "frontend" {
   }
 }
 
-resource "kubernetes_service" "frontend" {
+resource "kubernetes_service" "frontend_service" {
   metadata {
-    name = "frontend-service"
+    name      = "frontend-service"
+    namespace = kubernetes_namespace.pipelinecraft.metadata[0].name
   }
   spec {
     selector = {
       app = "frontend"
     }
     port {
+      protocol    = "TCP"
       port        = 80
       target_port = 80
-      node_port   = 30001
     }
-    type = "NodePort"
+    type = "LoadBalancer"
   }
 }
