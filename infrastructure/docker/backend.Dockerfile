@@ -1,12 +1,7 @@
-FROM node:16-alpine
-
+FROM node:18-alpine
 WORKDIR /app
-
-COPY package*.json ./
+COPY services/package.json services/package-lock.json ./
 RUN npm install
-
-COPY . .
-
+COPY services .  
 EXPOSE 5000
-
 CMD ["node", "app.js"]
