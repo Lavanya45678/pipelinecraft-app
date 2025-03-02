@@ -1,12 +1,21 @@
-const express = require("express");
+const express = require('express');
+const path = require('path');
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-const PORT = process.env.PORT || 5000;  // Change from 3000 to 5000
+// Middleware
+app.use(express.static(path.join(__dirname, '../ui')));
 
-app.get("/", (req, res) => {
-    res.send("Backend is running!");
+// API Routes
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'API is running' });
+});
+
+// Serve frontend
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../ui/index.html'));
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
