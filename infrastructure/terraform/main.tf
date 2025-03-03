@@ -2,14 +2,14 @@ provider "kubernetes" {
   config_path = var.kube_config_path
 }
 
-# ✅ Define Namespace
+# Define Namespace
 resource "kubernetes_namespace" "pipelinecraft" {
   metadata {
     name = "pipelinecraft"
   }
 }
 
-# ✅ Backend Deployment
+# Backend Deployment
 resource "kubernetes_deployment" "backend" {
   metadata {
     name      = "backend-deployment"
@@ -48,7 +48,7 @@ resource "kubernetes_deployment" "backend" {
   }
 }
 
-# ✅ Backend Service
+# Backend Service
 resource "kubernetes_service" "backend_service" {
   metadata {
     name      = "backend-service"
@@ -67,7 +67,7 @@ resource "kubernetes_service" "backend_service" {
   }
 }
 
-# ✅ Frontend Deployment
+# Frontend Deployment
 resource "kubernetes_deployment" "frontend" {
   metadata {
     name      = "frontend-deployment"
@@ -102,7 +102,7 @@ resource "kubernetes_deployment" "frontend" {
   }
 }
 
-# ✅ Frontend Service
+# Frontend Service
 resource "kubernetes_service" "frontend_service" {
   metadata {
     name      = "frontend-service"
