@@ -2,36 +2,34 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_REGISTRY = "your-dockerhub-username"
-        FRONTEND_IMAGE = "pipelinecraft-frontend"
-        BACKEND_IMAGE = "pipelinecraft-backend"
+        DOCKER_CREDENTIALS_ID = 'docker-hub-credentials'  // Jenkins Credentials ID for Docker Hub
+        GIT_CREDENTIALS_ID = 'github-credentials'         // Jenkins Credentials ID for GitHub
+        K8S_CREDENTIALS_ID = 'kubernetes-config'         // Jenkins Secret for Kubernetes Config
+        DOCKER_IMAGE_FRONTEND = 'your-dockerhub-username/pipelinecraft-frontend'
+        DOCKER_IMAGE_BACKEND = 'your-dockerhub-username/pipelinecraft-backend'
+        KUBE_NAMESPACE = 'pipelinecraft'
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                checkout([$class: 'GitSCM', 
-                    branches: [[name: '*/main']], 
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/Lavanya45678/pipelinecraft-app.git',
-                        credentialsId: 'github-pat'
-                    ]]
-                ])
-            }
-        }
-
-        stage('Build Frontend Image') {
-            steps {
                 script {
-                    sh 'docker build -t $DOCKER_REGISTRY/$FRONTEND_IMAGE:latest frontend/'
+                    checkout([$class: 'GitSCM', 
+                        branches: [[name: '*/main']], 
+                        userRemoteConfigs: [[
+                            credentialsId: GIT_CREDENTIALS_ID, 
+                            url: 'https://github.com/Lavanya45678/pipelinecraft-app.git'
+                        ]]
+                    ])
                 }
             }
         }
 
-        stage('Build Backend Image') {
+        stage('Build Docker Images') {
             steps {
                 script {
-                    sh 'docker build -t $DOCKER_REGISTRY/$BACKEND_IMAGE:latest backend/'
+                    docker.build("${DOCKER_IMAGE_FRONTEND}:latest", "-f infrastructure/docker/frontend.Dockerfile .")
+                    docker.build("${DOCKER_IMAGE_BACKEND}:latest", "-f infrastructure/docker/backend.Dockerfile .")
                 }
             }
         }
@@ -39,9 +37,12 @@ pipeline {
         stage('Push Docker Images') {
             steps {
                 script {
-                    withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
-                        sh 'docker push $DOCKER_REGISTRY/$FRONTEND_IMAGE:latest'
-                        sh 'docker push $DOCKER_REGISTRY/$BACKEND_IMAGE:latest'
+                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh """
+                            docker login -u $DOCKER_USER -p $DOCKER_PASS
+                            docker push ${DOCKER_IMAGE_FRONTEND}:latest
+                            docker push ${DOCKER_IMAGE_BACKEND}:latest
+                        """
                     }
                 }
             }
@@ -50,8 +51,12 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    sh 'kubectl apply -f k8s/deployment.yaml'
-                    sh 'kubectl apply -f k8s/service.yaml'
+                    withKubeConfig([credentialsId: K8S_CREDENTIALS_ID]) {
+                        sh """
+                            kubectl apply -f infrastructure/kubernetes/frontend-deployment.yaml -n ${KUBE_NAMESPACE}
+                            kubectl apply -f infrastructure/kubernetes/backend-deployment.yaml -n ${KUBE_NAMESPACE}
+                        """
+                    }
                 }
             }
         }
@@ -59,19 +64,19 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 script {
-                    sh 'kubectl get pods'
-                    sh 'kubectl get services'
+                    sh "kubectl get pods -n ${KUBE_NAMESPACE}"
+                    sh "kubectl get svc -n ${KUBE_NAMESPACE}"
                 }
             }
         }
     }
 
     post {
-        success {
-            echo '✅ Deployment Successful!'
-        }
         failure {
-            echo '❌ Deployment Failed!'
+            echo "❌ Deployment Failed!"
+        }
+        success {
+            echo "✅ Deployment Successful!"
         }
     }
 }
