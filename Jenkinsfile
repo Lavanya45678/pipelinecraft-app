@@ -14,7 +14,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 script {
-                    git credentialsId: "${GIT_CREDENTIALS_ID}", url: 'https://github.com/Lavanya45678/pipelinecraft-app.git'
+                    git branch: 'main', credentialsId: "${GIT_CREDENTIALS_ID}", url: 'https://github.com/Lavanya45678/pipelinecraft-app.git'
                 }
             }
         }
