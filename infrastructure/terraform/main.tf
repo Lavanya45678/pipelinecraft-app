@@ -13,7 +13,7 @@ resource "kubernetes_namespace" "pipelinecraft" {
 resource "kubernetes_deployment" "backend" {
   metadata {
     name      = "backend-deployment"
-    namespace = kubernetes_namespace.pipelinecraft.metadata[0].name
+    namespace = kubernetes_namespace.pipelinecraft.metadata[0].name # ✅ Explicit namespace
     labels = {
       app = "backend"
     }
@@ -52,7 +52,7 @@ resource "kubernetes_deployment" "backend" {
 resource "kubernetes_service" "backend_service" {
   metadata {
     name      = "backend-service"
-    namespace = kubernetes_namespace.pipelinecraft.metadata[0].name
+    namespace = kubernetes_namespace.pipelinecraft.metadata[0].name # ✅ Explicit namespace
   }
   spec {
     selector = {
@@ -71,7 +71,7 @@ resource "kubernetes_service" "backend_service" {
 resource "kubernetes_deployment" "frontend" {
   metadata {
     name      = "frontend-deployment"
-    namespace = kubernetes_namespace.pipelinecraft.metadata[0].name
+    namespace = kubernetes_namespace.pipelinecraft.metadata[0].name # ✅ Explicit namespace
     labels = {
       app = "frontend"
     }
@@ -106,7 +106,7 @@ resource "kubernetes_deployment" "frontend" {
 resource "kubernetes_service" "frontend_service" {
   metadata {
     name      = "frontend-service"
-    namespace = kubernetes_namespace.pipelinecraft.metadata[0].name
+    namespace = kubernetes_namespace.pipelinecraft.metadata[0].name # ✅ Explicit namespace
   }
   spec {
     selector = {
