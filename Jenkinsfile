@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_USERNAME = 'lavanya111' // Your Docker Hub username
-        DOCKER_CREDENTIALS_ID = 'docker-hub-credentials' // Jenkins credential ID for Docker Hub
-        GIT_CREDENTIALS_ID = 'git-credentials' // Jenkins credential ID for Git
-        KUBE_CONFIG_CREDENTIALS_ID = 'kube-config' // Jenkins credential ID for Kubernetes config
+        DOCKER_HUB_USERNAME = 'lavanya111'
+        DOCKER_CREDENTIALS_ID = 'docker-hub-credentials'
+        GIT_CREDENTIALS_ID = 'git-credentials'
+        KUBE_CONFIG_CREDENTIALS_ID = 'kube-config'
         BACKEND_IMAGE = "lavanya111/pipelinecraft-backend:latest"
         FRONTEND_IMAGE = "lavanya111/pipelinecraft-frontend:latest"
     }
@@ -14,7 +14,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 script {
-                    git branch: 'main', credentialsId: "${GIT_CREDENTIALS_ID}", url: 'https://github.com/Lavanya45678/pipelinecraft-app.git'
+                    git credentialsId: "${GIT_CREDENTIALS_ID}", url: 'https://github.com/Lavanya45678/pipelinecraft-app.git', branch: 'main'
                 }
             }
         }
